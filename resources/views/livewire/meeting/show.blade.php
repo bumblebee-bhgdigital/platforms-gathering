@@ -115,6 +115,11 @@
                         </x-nx-card>
                     </section>
 
+                    {{-- Präsentationen (Slides, lose gekoppelt — nur wenn Slides-Modul installiert) --}}
+                    @if(\Platform\Gathering\Livewire\LinkedDecks::available())
+                        <livewire:gathering.linked-decks linkable-type="gathering_meeting" :linkable-id="$meeting->id" :key="'decks-'.$meeting->id" />
+                    @endif
+
                     {{-- Beschlüsse --}}
                     <section class="space-y-4">
                         <div class="flex items-start justify-between gap-3">
