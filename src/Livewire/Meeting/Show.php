@@ -2,10 +2,12 @@
 
 namespace Platform\Gathering\Livewire\Meeting;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
+use Platform\Core\Livewire\Concerns\HasPageContext;
 use Platform\Gathering\Enums\AttendeeRole;
 use Platform\Gathering\Enums\DecisionStatus;
 use Platform\Gathering\Enums\MeetingStatus;
@@ -21,6 +23,8 @@ use Platform\Gathering\Models\Minutes;
  */
 class Show extends Component
 {
+    use HasPageContext;
+
     public Meeting $meeting;
 
     public bool $showMeetingEdit = false;
@@ -43,6 +47,22 @@ class Show extends Component
     {
         Gate::authorize('view', $meeting);
         $this->meeting = $meeting;
+    }
+
+    /** Seitenkontext für das Kontext-Panel: Unterlagen (ContextFiles), Aktivität, Verknüpfungen hängen am Meeting. */
+    protected function pageContext(): ?Model
+    {
+        return $this->meeting;
+    }
+
+    protected function pageContextOptions(): array
+    {
+        return [
+            'url' => route('gathering.meetings.show', $this->meeting),
+            'source' => 'gathering.meeting.view',
+            // Eigene Agenda in der Workbench → die polymorphe Panel-Agenda abschalten (keine Dopplung).
+            'apps' => ['agenda' => false],
+        ];
     }
 
     protected function authorizeEdit(): void
