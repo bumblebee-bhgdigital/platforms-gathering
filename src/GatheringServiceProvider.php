@@ -23,11 +23,15 @@
 
 namespace Platform\Gathering;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Platform\Core\PlatformCore;
 use Platform\Core\Routing\ModuleRouter;
+use Platform\Gathering\Models\Meeting;
+use Platform\Gathering\Policies\MeetingPolicy;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -193,7 +197,18 @@ class GatheringServiceProvider extends ServiceProvider
          * <livewire:gathering.dashboard />
          */
         $this->registerLivewireComponents();
-        
+
+        /**
+         * Morph-Alias: damit Hosts, Slides, Whisper u. a. lose an ein Meeting hängen können
+         * (additiv, überschreibt nichts). Das Meeting = 'gathering_meeting'.
+         */
+        Relation::morphMap([
+            'gathering_meeting' => Meeting::class,
+        ]);
+
+        /** Rechte am Meeting (Kinder erben über das Meeting). */
+        Gate::policy(Meeting::class, MeetingPolicy::class);
+
         /**
          * SCHRITT 7: Tools registrieren (optional)
          * 

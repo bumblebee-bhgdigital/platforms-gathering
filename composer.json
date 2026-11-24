@@ -1,6 +1,6 @@
 {
     "name": "martin3r/platform-gathering",
-    "description": "Gathering (host-agnostisches Besprechungs-Paket, leeres Gerüst)",
+    "description": "Gathering — host-agnostisches Meeting-Paket: Meeting = das Ding, alles optional dran (Agenda, Beschlüsse, Protokoll, Teilnehmer), Host via morphTo, Termin via inbox_item.",
     "type": "library",
     "license": "MIT",
     "authors": [

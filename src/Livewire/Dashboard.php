@@ -1,83 +1,82 @@
 <?php
 
-/**
- * Dashboard Livewire Component
- * 
- * Hauptübersicht des Moduls.
- * 
- * WICHTIG FÜR LLMs:
- * - Jedes Modul sollte ein Dashboard haben
- * - Dashboard zeigt Übersicht/Statistiken
- * - Verwendet platform::layouts.app Layout
- * - Kann comms-Event dispatch'en (für Kommunikation)
- * 
- * ANPASSUNGEN:
- * - Füge Datenqueries hinzu
- * - Passe View an deine Bedürfnisse an
- * - Füge Statistiken hinzu
- */
-
 namespace Platform\Gathering\Livewire;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Platform\Gathering\Enums\MeetingStatus;
+use Platform\Gathering\Models\Meeting;
 
+/**
+ * Übersicht aller Meetings des aktuellen Teams (anstehend + vergangen) mit „Neues Meeting".
+ * Ein Meeting ist das Ding — hier host-los angelegt, der Host (worum's geht) folgt optional.
+ */
 class Dashboard extends Component
 {
-    /**
-     * Dispatch comms-Event (optional)
-     * 
-     * Wird nach dem Rendern aufgerufen.
-     * Kann für Kommunikation/Notifications verwendet werden.
-     */
-    public function rendered()
+    public bool $showCreate = false;
+    public array $form = ['title' => '', 'scheduled_at' => null, 'duration_minutes' => null, 'location' => null];
+
+    public function openCreate(): void
     {
-        $this->dispatch('comms', [
-            'model' => null,
-            'modelId' => null,
-            'subject' => 'Gathering Dashboard',
-            'description' => 'Übersicht des Template-Moduls',
-            'url' => route('gathering.dashboard'),
-            'source' => 'gathering.dashboard',
-            'recipients' => [],
-            'meta' => [
-                'view_type' => 'dashboard',
-            ],
-        ]);
+        $this->form = ['title' => '', 'scheduled_at' => null, 'duration_minutes' => null, 'location' => null];
+        $this->resetValidation();
+        $this->showCreate = true;
     }
 
-    /**
-     * Render-Methode
-     * 
-     * Lädt Daten und gibt die View zurück.
-     * 
-     * PATTERN:
-     * 1. User/Team holen
-     * 2. Daten laden (Models, Statistiken, etc.)
-     * 3. View mit Daten zurückgeben
-     */
+    public function createMeeting()
+    {
+        $user = Auth::user();
+        abort_unless($user && $user->currentTeam, 403);
+
+        $this->validate([
+            'form.title' => 'required|string|max:255',
+            'form.scheduled_at' => 'nullable|date',
+            'form.duration_minutes' => 'nullable|integer|min:1|max:1440',
+            'form.location' => 'nullable|string|max:255',
+        ]);
+
+        $meeting = Meeting::create([
+            'team_id' => $user->currentTeam->id,
+            'title' => trim($this->form['title']),
+            'scheduled_at' => $this->form['scheduled_at'] ?: null,
+            'duration_minutes' => $this->form['duration_minutes'] ?: null,
+            'location' => $this->form['location'] ?: null,
+            'status' => MeetingStatus::PLANNED->value,
+            'created_by' => $user->id,
+        ]);
+
+        $this->showCreate = false;
+
+        return $this->redirect(route('gathering.meetings.show', $meeting), navigate: true);
+    }
+
     public function render()
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $teamId = $user?->currentTeam?->id;
 
-        /**
-         * BEISPIEL: Daten laden
-         * 
-         * $entities = YourModel::where('team_id', $team->id)
-         *     ->orderBy('name')
-         *     ->get();
-         * 
-         * $stats = [
-         *     'total' => $entities->count(),
-         *     'active' => $entities->where('is_active', true)->count(),
-         * ];
-         */
+        $base = Meeting::query()
+            ->where('team_id', $teamId)
+            ->withCount(['agendaItems', 'decisions', 'attendees']);
+
+        $upcoming = (clone $base)->upcoming()
+            ->orderBy('scheduled_at')
+            ->get();
+
+        $recent = (clone $base)
+            ->where(function ($q) {
+                $q->whereNull('scheduled_at')
+                    ->orWhere('scheduled_at', '<', now())
+                    ->orWhereIn('status', [MeetingStatus::HELD->value, MeetingStatus::CANCELLED->value]);
+            })
+            ->orderByRaw('COALESCE(scheduled_at, created_at) DESC')
+            ->limit(50)
+            ->get();
 
         return view('gathering::livewire.dashboard', [
-            'currentDate' => now()->format('d.m.Y'),
-            'currentDay' => now()->format('l'),
-            // Füge hier deine Daten hinzu
+            'upcoming' => $upcoming,
+            'recent' => $recent,
+            'total' => (clone $base)->count(),
         ])->layout('platform::layouts.app');
     }
 }

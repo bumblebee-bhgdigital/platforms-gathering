@@ -42,8 +42,8 @@ return [
      */
     'navigation' => [
         'route' => 'gathering.dashboard',
-        'icon'  => 'heroicon-o-cube',
-        'order' => 100, // Hohe Zahl = weiter unten in der Navigation
+        'icon'  => 'heroicon-o-calendar-days',
+        'order' => 60,
     ],
 
     /**
@@ -68,17 +68,12 @@ return [
      */
     'sidebar' => [
         [
-            'group' => 'Allgemein',
+            'group' => 'Meetings',
             'items' => [
                 [
-                    'label' => 'Dashboard',
+                    'label' => 'Alle Meetings',
                     'route' => 'gathering.dashboard',
-                    'icon'  => 'heroicon-o-home',
-                ],
-                [
-                    'label' => 'nx-Showcase',
-                    'route' => 'gathering.showcase',
-                    'icon'  => 'heroicon-o-swatch',
+                    'icon'  => 'heroicon-o-calendar-days',
                 ],
             ],
         ],
