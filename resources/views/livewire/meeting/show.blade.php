@@ -60,6 +60,25 @@
                 @endif
             </div>
 
+            @php
+                $flow = match ($meeting->status?->value) {
+                    'planned' => ['heroicon-o-pencil-square', 'Vorbereiten', 'Agenda füllen, Teilnehmer einladen, Unterlagen und Folien anhängen.'],
+                    'prepared' => ['heroicon-o-chat-bubble-left-right', 'Durchführen', 'Punkte durchgehen, Beschlüsse festhalten, Protokoll mitschreiben.'],
+                    'held' => ['heroicon-o-clipboard-document-check', 'Nachbereiten', 'Protokoll freigeben, Beschlüsse verfolgen, Aufnahme anhängen.'],
+                    'cancelled' => ['heroicon-o-x-circle', 'Abgesagt', 'Offene Punkte gehen nicht verloren — nimm sie ins nächste Meeting mit.'],
+                    default => null,
+                };
+            @endphp
+            @if($flow)
+                <div class="flex items-start gap-3 rounded-[8px] border border-[color:var(--nx-line)] px-5 py-4">
+                    @svg($flow[0], 'mt-0.5 w-5 h-5 shrink-0 text-[color:var(--nx-muted)]')
+                    <div class="space-y-0.5">
+                        <div class="text-sm font-semibold text-[color:var(--nx-text)]">Jetzt: {{ $flow[1] }}</div>
+                        <p class="m-0 text-sm leading-relaxed text-[color:var(--nx-muted)]">{{ $flow[2] }}</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px]">
                 {{-- Hauptspalte --}}
                 <div class="min-w-0 space-y-10">
