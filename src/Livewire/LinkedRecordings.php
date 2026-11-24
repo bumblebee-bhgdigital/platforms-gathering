@@ -75,7 +75,7 @@ class LinkedRecordings extends Component
     {
         abort_unless(self::available() && $this->canEdit(), 403);
         $recording = \Platform\Whisper\Models\WhisperRecording::findOrFail($recordingId);
-        $this->links()->attach($recording, $this->parent());
+        $this->links()->link($recording, $this->linkableType, $this->linkableId, 'recording', Auth::user());
         $this->showLink = false;
     }
 
@@ -83,7 +83,7 @@ class LinkedRecordings extends Component
     {
         abort_unless(self::available() && $this->canEdit(), 403);
         $recording = \Platform\Whisper\Models\WhisperRecording::findOrFail($recordingId);
-        $this->links()->detach($recording, $this->parent());
+        $this->links()->unlink($recording, $this->linkableType, $this->linkableId);
     }
 
     /** Transkript einer Aufnahme als Protokoll-Entwurf ans Meeting übernehmen (deterministisch, kein Auto). */
@@ -112,12 +112,10 @@ class LinkedRecordings extends Component
             return view('gathering::livewire.linked-recordings', ['available' => false, 'recordings' => collect(), 'candidates' => collect(), 'canEdit' => false, 'routes' => [], 'isMeeting' => false]);
         }
 
-        $user = Auth::user();
         $parent = $this->parent();
 
-        $recordings = collect($this->links()->forLinkable($parent))
-            ->sortByDesc(fn ($r) => $r->recorded_at?->timestamp ?? $r->created_at?->timestamp ?? 0)
-            ->values();
+        // recordingsFor liefert die Aufnahmen bereits neueste-zuerst (COALESCE(recorded_at, created_at) DESC).
+        $recordings = $this->links()->recordingsFor($this->linkableType, $this->linkableId, (int) $parent->team_id);
 
         $candidates = collect();
         if ($this->showLink) {
