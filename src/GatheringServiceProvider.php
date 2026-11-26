@@ -210,6 +210,19 @@ class GatheringServiceProvider extends ServiceProvider
         Gate::policy(Meeting::class, MeetingPolicy::class);
 
         /**
+         * Kontext-Panel-App „Meetings": ein Host (Projekt, Person, Gremium …) bietet sie per
+         * page-context an (`'apps' => ['meetings' => true]`), dann erscheint der Reiter rechts
+         * neben Dateien/Zeit/Agenda. Gleiches Muster wie home AgendaPanelApp / okr.
+         * Expliziter Livewire-Alias, damit der Panel-Pfad (Unterordner) deterministisch auflöst.
+         */
+        try {
+            \Platform\Core\Terminal\TerminalAppRegistry::register(new \Platform\Gathering\Terminal\MeetingsPanelApp());
+            Livewire::component('gathering.panel.meetings', \Platform\Gathering\Livewire\Panel\Meetings::class);
+        } catch (\Throwable $e) {
+            // Core-Terminal-Registry (noch) nicht verfügbar — Reiter einfach weglassen.
+        }
+
+        /**
          * SCHRITT 7: Tools registrieren (optional)
          * 
          * Falls dein Modul AI/Chat-Tools hat:
