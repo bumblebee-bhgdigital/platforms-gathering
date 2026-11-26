@@ -34,9 +34,34 @@
         @endphp
         <div class="mx-auto w-full max-w-[1280px] space-y-8">
             {{-- Kopf --}}
+            @php $origin = \Platform\Gathering\Support\HostChip::for($meeting); @endphp
             <div class="space-y-3">
-                <div class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--nx-faint)]">
-                    Meeting{{ $hostName ? ' · ' . $hostName : '' }}
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--nx-faint)]">Arbeitsraum</span>
+                    {{-- Herkunft: woran hängt dieses Meeting? Klickbar zur Quelle (jump-to-source). --}}
+                    @if($origin && $origin['url'])
+                        <a href="{{ $origin['url'] }}" wire:navigate
+                           class="group inline-flex items-center gap-1.5 rounded-full border border-[color:var(--nx-line)] px-2.5 py-1 text-xs text-[color:var(--nx-muted)] transition-colors hover:border-[color:var(--nx-line-strong)] hover:text-[color:var(--nx-text)]">
+                            @svg($origin['icon'], 'w-3.5 h-3.5 text-[color:var(--nx-faint)]')
+                            <span class="text-[color:var(--nx-faint)]">gehört zu</span>
+                            <span class="font-medium text-[color:var(--nx-text)]">{{ $origin['type'] }}</span>
+                            @if($origin['name'])<span>· {{ $origin['name'] }}</span>@endif
+                            @svg('heroicon-o-arrow-up-right', 'w-3 h-3 text-[color:var(--nx-faint)] transition-transform group-hover:-translate-y-px group-hover:translate-x-px')
+                        </a>
+                    @elseif($origin)
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--nx-line)] px-2.5 py-1 text-xs text-[color:var(--nx-muted)]">
+                            @svg($origin['icon'], 'w-3.5 h-3.5 text-[color:var(--nx-faint)]')
+                            <span class="text-[color:var(--nx-faint)]">gehört zu</span>
+                            <span class="font-medium text-[color:var(--nx-text)]">{{ $origin['type'] }}</span>
+                            @if($origin['name'])<span>· {{ $origin['name'] }}</span>@endif
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[color:var(--nx-line-strong)] px-2.5 py-1 text-xs text-[color:var(--nx-faint)]"
+                              title="Dieses Meeting ist noch keinem Kontext zugeordnet.">
+                            @svg('heroicon-o-link-slash', 'w-3.5 h-3.5')
+                            keinem Kontext zugeordnet
+                        </span>
+                    @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <h1 class="m-0 text-3xl font-semibold tracking-tight text-[color:var(--nx-text)]">{{ $meeting->title }}</h1>

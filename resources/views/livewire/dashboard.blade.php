@@ -72,7 +72,7 @@
                 @if($next)
                     @php
                         $nextWhen = $next->scheduled_at;
-                        $nextHost = $next->hostName();
+                        $nextOrigin = \Platform\Gathering\Support\HostChip::for($next);
                     @endphp
                     <a href="{{ route('gathering.meetings.show', $next) }}" wire:navigate
                        class="group block rounded-[12px] border border-[color:var(--nx-line)] bg-[color:var(--nx-surface)] p-6 transition-colors hover:border-[color:var(--nx-line-strong)]">
@@ -90,7 +90,7 @@
                                 </div>
                                 <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-[color:var(--nx-muted)]">
                                     <span>{{ $nextWhen?->translatedFormat('l, d.m.Y') }}</span>
-                                    @if($nextHost)<span class="inline-flex items-center gap-1">@svg('heroicon-o-link', 'w-3.5 h-3.5') {{ $nextHost }}</span>@endif
+                                    @if($nextOrigin)<span class="inline-flex items-center gap-1" title="gehört zu {{ $nextOrigin['type'] }}{{ $nextOrigin['name'] ? ' · '.$nextOrigin['name'] : '' }}">@svg($nextOrigin['icon'], 'w-3.5 h-3.5 text-[color:var(--nx-faint)]') {{ $nextOrigin['type'] }}@if($nextOrigin['name']) · {{ $nextOrigin['name'] }}@endif</span>@endif
                                     @if(($next->agenda_items_count ?? 0) > 0)<span>{{ $next->agenda_items_count }} Agenda</span>@endif
                                     @if(($next->attendees_count ?? 0) > 0)<span>{{ $next->attendees_count }} Teilnehmer</span>@endif
                                 </div>

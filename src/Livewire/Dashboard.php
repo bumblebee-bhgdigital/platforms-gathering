@@ -57,6 +57,7 @@ class Dashboard extends Component
 
         $base = Meeting::query()
             ->where('team_id', $teamId)
+            ->with('host') // Herkunft-Chip ohne N+1
             ->withCount(['agendaItems', 'decisions', 'attendees']);
 
         $upcoming = (clone $base)->upcoming()
