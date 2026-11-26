@@ -104,6 +104,43 @@
                 </div>
             @endif
 
+            {{-- Anforderung des Hosts (z. B. LA-Leitfaden eines Gremiums). Abrufbar, nicht kopiert:
+                 lebt beim Host, hier nur gelesen — Mensch wie Agent sehen, was gefordert ist. --}}
+            @php $briefing = \Platform\Gathering\Support\HostChip::briefingFor($meeting); @endphp
+            @if($briefing)
+                <section class="rounded-[12px] border border-[color:var(--nx-line)] bg-[color:var(--nx-surface)] p-6">
+                    <div class="flex items-start gap-3">
+                        @svg('heroicon-o-' . ($briefing->icon ?: 'clipboard-document-list'), 'mt-0.5 w-5 h-5 shrink-0 text-[color:var(--nx-faint)]')
+                        <div class="min-w-0 flex-1 space-y-3">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--nx-faint)]">Anforderung</span>
+                                <h2 class="m-0 text-base font-semibold text-[color:var(--nx-text)]">{{ $briefing->title }}</h2>
+                                @if($briefing->url)
+                                    <a href="{{ $briefing->url }}" wire:navigate class="inline-flex items-center gap-1 text-xs text-[color:var(--nx-muted)] transition-colors hover:text-[color:var(--nx-text)]">
+                                        @svg('heroicon-o-arrow-up-right', 'w-3 h-3') zur Quelle
+                                    </a>
+                                @endif
+                            </div>
+                            @if($briefing->summary)
+                                <p class="m-0 max-w-[70ch] text-sm leading-relaxed text-[color:var(--nx-muted)]">{{ $briefing->summary }}</p>
+                            @endif
+                            @php $briefingPoints = $briefing->normalizedPoints(); @endphp
+                            @if(count($briefingPoints))
+                                <ul class="m-0 grid list-none gap-1.5 p-0 sm:grid-cols-2">
+                                    @foreach($briefingPoints as $bp)
+                                        <li class="flex items-start gap-2 text-sm text-[color:var(--nx-text)]">
+                                            @svg('heroicon-o-check-circle', 'mt-0.5 w-4 h-4 shrink-0 text-[color:var(--nx-faint)]')
+                                            <span><span class="font-medium">{{ $bp['label'] }}</span>@if($bp['hint']) <span class="text-[color:var(--nx-muted)]">— {{ $bp['hint'] }}</span>@endif</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            <p class="m-0 text-[11px] text-[color:var(--nx-faint)]">Kommt vom Host — hier nur gezeigt, gepflegt wird sie an der Quelle.</p>
+                        </div>
+                    </div>
+                </section>
+            @endif
+
             <div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px]">
                 {{-- Hauptspalte --}}
                 <div class="min-w-0 space-y-10">
